@@ -1,8 +1,6 @@
+version: '3'
 networks:
   shared_network:
-    name: my_network
-    driver: bridge
-
 services:
 
   elasticsearch:
@@ -21,6 +19,12 @@ services:
       discovery.type: single-node
     networks:
       - shared_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 5
+        window: 60s
 
   logstash:
     container_name: logstash
@@ -38,6 +42,12 @@ services:
         - shared_network
     depends_on:
         - elasticsearch
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 5
+        window: 60s
 
   kibana:
     container_name: kibana
@@ -50,6 +60,12 @@ services:
       - shared_network
     depends_on:
       - elasticsearch
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 5
+        window: 60s
 
 
   zookeeper:
@@ -61,6 +77,12 @@ services:
       - ALLOW_ANONYMOUS_LOGIN=yes
     networks:
       - shared_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 5
+        window: 60s
 
   kafka:
     image: bitnami/kafka:latest
@@ -79,6 +101,12 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
     networks:
       - shared_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 5
+        window: 60s
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest

@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,11 +36,14 @@ public class SecurityConfig {
         http.authenticationManager(authenticationManager);
 
         http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(authroize -> authroize.requestMatchers("/api/auth/sign-up")
-                        .permitAll()
-                        .requestMatchers("/api/auth/**").hasAnyRole("USER", "MANAGER", "ADMIN")
-                        .anyRequest().permitAll()
+                .authorizeHttpRequests(
+                        authroize -> authroize
+                                .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/h2-console/**").permitAll()
+                                .requestMatchers("/api/feed/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+                                .anyRequest().permitAll()
                 )
+                .headers(headerConfig -> headerConfig.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .addFilter(corsConfig.corsFilter())
@@ -50,6 +54,7 @@ public class SecurityConfig {
 
 
     }
+
     // 암호화에 필요한 PasswordEncoder Bean 등록
     @Bean
     public PasswordEncoder passwordEncoder() {

@@ -13,7 +13,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.ObjectUtils;
 
-// 인가
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
     private final JwtUtil jwtUtil;
@@ -27,16 +26,47 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         String AUTHORIZATION_HEADER = "Authorization";
+        String REFRESH_AUTHORIZATION_HEADER = "RefreshAuthorization";
+        String BEARER_TYPE = "Bearer ";
 
         String header = request.getHeader(AUTHORIZATION_HEADER);
+        String refreshHeader = request.getHeader(REFRESH_AUTHORIZATION_HEADER);
         String accessToken = null;
-
+        String refreshToken = null;
         try {
 
-            String BEARER_TYPE = "Bearer ";
             if ((!ObjectUtils.isEmpty(header)) && (header.startsWith(BEARER_TYPE))) {
 
                 accessToken = header;
+
+                if ((!ObjectUtils.isEmpty(refreshHeader)) && (refreshHeader.startsWith(
+                        BEARER_TYPE))) {
+
+                    refreshToken = refreshHeader;
+
+                }
+
+                try {
+
+                    this.jwtUtil.validate(header.substring(7), request);
+
+                } catch (ExpiredJwtException e) {
+
+                    accessToken = this.jwtUtil.reNewAccessTokenFromRefreshToken(refreshToken,
+                            request);
+
+                }
+
+                try {
+
+                    this.jwtUtil.validate(refreshHeader.substring(7), request);
+
+                } catch (ExpiredJwtException e) {
+
+                    refreshToken = this.jwtUtil.reNewRefreshTokenFromAccessToken(accessToken,
+                            request);
+
+                }
 
             }
 
@@ -46,6 +76,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         }
 
         response.setHeader(AUTHORIZATION_HEADER, accessToken);
+        response.setHeader(REFRESH_AUTHORIZATION_HEADER, refreshToken);
 
         chain.doFilter(request, response);
     }

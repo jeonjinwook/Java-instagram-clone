@@ -3,11 +3,13 @@ package com.Java_instagram_clone.filter;
 import com.Java_instagram_clone.domain.member.entity.Member;
 import com.Java_instagram_clone.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,11 +29,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 30 * 60 * 1000L;         // 30분
 
-
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request,
-        HttpServletResponse response)
-        throws AuthenticationException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
         ObjectMapper om = new ObjectMapper();
         Member user = null;
@@ -70,12 +69,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         // 유저네임패스워드 토큰 생성
         UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
-                user.getPassword());
+                new UsernamePasswordAuthenticationToken(
+                        user.getEmail(),
+                        user.getPassword());
 
         Authentication authentication =
-            authenticationManager.authenticate(authenticationToken);
+                authenticationManager.authenticate(authenticationToken);
 
         return authentication;
     }
@@ -83,8 +82,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     // JWT Token 생성해서 response에 담아주기
     @Override
     protected void successfulAuthentication(HttpServletRequest request,
-        HttpServletResponse response, FilterChain chain,
-        Authentication authResult) {
+                                            HttpServletResponse response, FilterChain chain,
+                                            Authentication authResult) {
 
         Object principal = authResult.getPrincipal();
         UserDetails userDetails = (UserDetails) principal;

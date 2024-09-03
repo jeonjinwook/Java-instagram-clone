@@ -1,5 +1,20 @@
 package com.Java_instagram_clone.jwt;
 
+import com.Java_instagram_clone.domain.auth.service.CustomAuthDetailService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
@@ -8,35 +23,14 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import com.Java_instagram_clone.domain.auth.service.CustomAuthDetailService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
-
 @Component
 public class JwtUtil {
 
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 60 * 1000L;              // 30분
+    private static final long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L;    // 7일
     private final Key key;
     private final CustomAuthDetailService authDetailsService;
     private final RedisTemplate redisTemplate;
-
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1 * 60 * 1000L;              // 30분
-    private static final long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L;    // 7일
     private final String BEARER_TYPE = "Bearer ";
 
     public JwtUtil(@Value("${jwt.secret}") String secretKey, CustomAuthDetailService authDetailsService, RedisTemplate redisTemplate) {
@@ -135,7 +129,7 @@ public class JwtUtil {
 
             setAuthenticationContextHolder(userDetails, request);
 
-            redisTemplate.opsForValue().set("RT:" + userDetails.getUsername(), token,REFRESH_TOKEN_EXPIRE_TIME, TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().set("RT:" + userDetails.getUsername(), token, REFRESH_TOKEN_EXPIRE_TIME, TimeUnit.MILLISECONDS);
 
         }
 

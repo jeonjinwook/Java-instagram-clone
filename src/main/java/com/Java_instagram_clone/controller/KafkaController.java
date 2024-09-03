@@ -16,6 +16,7 @@ public class KafkaController {
     public KafkaController(MessageSender messageSender) {
         this.messageSender = messageSender;
     }
+
     @GetMapping("/send")
     public String sendMessage(@RequestParam String message) {
         messageSender.send("test-kafka", message);

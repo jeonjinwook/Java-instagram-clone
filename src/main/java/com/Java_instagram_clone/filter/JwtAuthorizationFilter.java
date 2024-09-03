@@ -2,9 +2,6 @@ package com.Java_instagram_clone.filter;
 
 import com.Java_instagram_clone.jwt.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
-
-import java.io.IOException;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.ObjectUtils;
+
+import java.io.IOException;
 
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
@@ -72,7 +71,6 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
 
         } catch (ExpiredJwtException e) {
-            e.printStackTrace();
         }
 
         response.setHeader(AUTHORIZATION_HEADER, accessToken);

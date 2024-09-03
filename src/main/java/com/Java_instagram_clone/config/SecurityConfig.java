@@ -1,6 +1,6 @@
 package com.Java_instagram_clone.config;
 
-import com.Java_instagram_clone.filter.JwtAuthenticationFilter;
+
 import com.Java_instagram_clone.filter.JwtAuthorizationFilter;
 import com.Java_instagram_clone.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -47,7 +46,6 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .addFilter(corsConfig.corsFilter())
-                .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtUtil))
                 .addFilter(new JwtAuthorizationFilter(authenticationManager, jwtUtil))
                 .sessionManagement((sessionManagementConfig) -> sessionManagementConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();

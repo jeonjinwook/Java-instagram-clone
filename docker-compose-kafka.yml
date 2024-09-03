@@ -39,9 +39,9 @@ services:
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
-        - shared_network
+      - shared_network
     depends_on:
-        - elasticsearch
+      - elasticsearch
     deploy:
       restart_policy:
         condition: on-failure

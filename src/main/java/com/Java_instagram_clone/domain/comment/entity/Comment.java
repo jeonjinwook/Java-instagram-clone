@@ -30,7 +30,7 @@ public class Comment {
     @JoinColumn(name = "FEED_ID")
     private Feed feed;
 
-    @OneToMany(targetEntity = Like.class ,mappedBy = "comment")
+    @OneToMany(targetEntity = Like.class, mappedBy = "comment")
     private List<Like> likes = new ArrayList<>();
 
     @Column()

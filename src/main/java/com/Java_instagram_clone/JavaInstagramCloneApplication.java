@@ -8,8 +8,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableWebMvc
 public class JavaInstagramCloneApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(JavaInstagramCloneApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(JavaInstagramCloneApplication.class, args);
+    }
 
 }

@@ -2,11 +2,9 @@ package com.Java_instagram_clone.domain.profile.entity;
 
 import com.Java_instagram_clone.domain.member.entity.Member;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+@Builder
 @Table(name = "Profile")
 @Entity(name = "Profile")
 @Getter
@@ -17,19 +15,20 @@ public class Profile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private Integer id;
 
     @ManyToOne(targetEntity = Member.class)
-    @JoinColumn(name = "memberId")
+    @JoinColumn(name = "member_id")
     private Member user;
 
-    @Column()
+    @Column(name="photo")
     private String photo;
 
-    @Column()
+    @Column(name="gender")
     private String gender;
 
-    @Column()
+    @Column(name="birthday")
     private String birthday;
 
 

@@ -127,3 +127,4 @@ fabric.properties
 elasticsearch/nodes*
 elasticsearch/nodes/
 
+src/main/resources/uploadFile/*

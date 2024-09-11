@@ -128,3 +128,21 @@ elasticsearch/nodes*
 elasticsearch/nodes/
 
 src/main/resources/static/uploadFile/*
+
+postgresql/data*
+postgresql/data/
+pgdata/
+pg_logs/
+*.pgsql
+*.pgdump
+*.pgpass
+*.pg_config
+
+*.sql
+*.dump
+*.backup
+
+.DS_Store
+
+postmaster.pid
+postmaster.opts

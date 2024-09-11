@@ -4,12 +4,9 @@ import com.Java_instagram_clone.domain.comment.entity.Comment;
 import com.Java_instagram_clone.domain.like.entity.Like;
 import com.Java_instagram_clone.domain.member.entity.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Table(name = "Feed")
@@ -31,13 +28,13 @@ public class Feed {
     @JsonIgnore
     private Member user;
 
-    @OneToMany(targetEntity = Comment.class, mappedBy = "feed", cascade = CascadeType.PERSIST,fetch = FetchType.EAGER)
+    @OneToMany(targetEntity = Comment.class, mappedBy = "feed", cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private List<Comment> comments;
 
-    @OneToMany(targetEntity = Like.class, mappedBy = "feed", cascade = CascadeType.PERSIST,fetch = FetchType.EAGER)
+    @OneToMany(targetEntity = Like.class, mappedBy = "feed", cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private List<Like> likes;
 
-//    @Type(value = StringArrayType.class)
+    //    @Type(value = StringArrayType.class)
 //    @Column(name = "files", columnDefinition = "text[]")
 //    private String[] files;
     @Column()

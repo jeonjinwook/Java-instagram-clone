@@ -11,7 +11,6 @@ import com.Java_instagram_clone.domain.member.entity.Member;
 import com.Java_instagram_clone.domain.member.entity.ResponseMember;
 import com.Java_instagram_clone.file.FileService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +40,7 @@ public class FeedService {
                 createFiles = fileService.uploadFile(files);
             }
 
-            if(!createFiles.isEmpty()) {
+            if (!createFiles.isEmpty()) {
 
                 String file = String.join(",", createFiles);
                 Member member = authRepository.findById(feed.getUserNo());
@@ -57,19 +55,18 @@ public class FeedService {
 
             }
 
-            feedProducer.sendNotification("새로운 피드가 등록되었습니다."+ feed.getContents());
-
+            feedProducer.sendNotification("새로운 피드가 등록되었습니다." + feed.getContents());
 
 
         } catch (IOException e) {
             throw e;
         }
 
-        return responseDto.success("","장상적으로 처리 했습니다.", HttpStatus.OK);
+        return responseDto.success("", "장상적으로 처리 했습니다.", HttpStatus.OK);
     }
 
     public ResponseEntity<?> findAll(RequestFeed feed) {
-        return responseDto.success("","장상적으로 처리 했습니다.", HttpStatus.OK);
+        return responseDto.success("", "장상적으로 처리 했습니다.", HttpStatus.OK);
     }
 
     public ResponseEntity<?> getFeedByFeedId(long id) {
@@ -95,7 +92,7 @@ public class FeedService {
         responseFeed.setUser(responseMember);
 
 
-        return responseDto.success(responseFeed,"장상적으로 처리 했습니다.", HttpStatus.OK);
+        return responseDto.success(responseFeed, "장상적으로 처리 했습니다.", HttpStatus.OK);
     }
 
     public ResponseEntity<?> findByUserId(RequestFeed requestFeed) {
@@ -122,15 +119,15 @@ public class FeedService {
             return responseFeed;
         }).toList();
 
-        return responseDto.success(responseFeeds,"장상적으로 처리 했습니다.", HttpStatus.OK);
+        return responseDto.success(responseFeeds, "장상적으로 처리 했습니다.", HttpStatus.OK);
     }
 
     public ResponseEntity<?> findByUserIds(RequestFeed feed) {
-        return responseDto.success("","장상적으로 처리 했습니다.", HttpStatus.OK);
+        return responseDto.success("", "장상적으로 처리 했습니다.", HttpStatus.OK);
     }
 
     public ResponseEntity<?> update(RequestFeed feed) {
-        return responseDto.success("","장상적으로 처리 했습니다.", HttpStatus.OK);
+        return responseDto.success("", "장상적으로 처리 했습니다.", HttpStatus.OK);
     }
 
     public ResponseEntity<?> remove(long id) {

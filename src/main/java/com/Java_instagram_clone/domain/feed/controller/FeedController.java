@@ -1,6 +1,5 @@
 package com.Java_instagram_clone.domain.feed.controller;
 
-import com.Java_instagram_clone.domain.feed.entity.Feed;
 import com.Java_instagram_clone.domain.feed.entity.RequestFeed;
 import com.Java_instagram_clone.domain.feed.service.FeedService;
 import lombok.RequiredArgsConstructor;
@@ -24,29 +23,34 @@ public class FeedController {
     }
 
     @GetMapping("findAll")
-    public ResponseEntity<?> findAll(RequestFeed feed){
+    public ResponseEntity<?> findAll(RequestFeed feed) {
 
         return feedService.findAll(feed);
     }
+
     @GetMapping("getFeedByFeedId")
     public ResponseEntity<?> getFeedByFeedId(@RequestParam("feedId") long id) {
         return feedService.getFeedByFeedId(id);
     }
+
     @PostMapping("userFeeds")
     public ResponseEntity<?> findByUserId(RequestFeed feed) {
 
         return feedService.findByUserId(feed);
     }
+
     @PostMapping("findByUserIds")
     public ResponseEntity<?> findByUserIds(RequestFeed feed) {
 
         return feedService.findByUserIds(feed);
     }
+
     @PatchMapping("update")
     public ResponseEntity<?> update(RequestFeed feed) {
 
         return feedService.update(feed);
     }
+
     @DeleteMapping()
     public ResponseEntity<?> delete(@RequestParam("feedId") long id) {
 

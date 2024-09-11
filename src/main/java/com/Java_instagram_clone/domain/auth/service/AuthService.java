@@ -9,7 +9,6 @@ import com.Java_instagram_clone.enums.Authority;
 import com.Java_instagram_clone.jwt.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -71,7 +70,6 @@ public class AuthService {
         return responseDto.success("회원가입에 성공했습니다.");
     }
 
-    @Transactional
     public ResponseEntity<?> login(Member member, HttpServletResponse response) {
 
         if (authRepository.findByEmail(member.getEmail()).orElse(null) == null) {
@@ -93,13 +91,12 @@ public class AuthService {
             BeanUtils.copyProperties(userInfo, user);
 
 
-
         } catch (Exception e) {
             return responseDto.fail("로그인에 실패했습니다.", HttpStatus.BAD_REQUEST);
         }
 
 
-        return responseDto.success(user,"로그인에 성공했습니다.", HttpStatus.CREATED);
+        return responseDto.success(user, "로그인에 성공했습니다.", HttpStatus.CREATED);
     }
 
     public ResponseEntity<?> logout(HttpServletRequest request) {

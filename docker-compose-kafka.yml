@@ -128,3 +128,22 @@ services:
     hostname: redis
     ports:
       - 7012:6379
+  postgresql:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: sa
+      POSTGRES_PASSWORD: instagram55!
+      POSTGRES_DB: instaDB
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - shared_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 5
+        window: 60s

@@ -1,17 +1,15 @@
 package com.Java_instagram_clone.file;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.UUID;
 
 @Service
 public class FileService {
@@ -63,17 +61,18 @@ public class FileService {
 
     public void removeFile(String[] files) throws IOException {
 
-            Arrays.stream(files).forEach(file -> {
+        Arrays.stream(files).forEach(file -> {
 
-                Path filePath = Paths.get(uploadDir).resolve(file);
+            Path filePath = Paths.get(uploadDir).resolve(file);
 
-                if (Files.exists(filePath)) {
-                    try {
-                        Files.deleteIfExists(filePath);
-                    } catch (IOException e) {}
-
+            if (Files.exists(filePath)) {
+                try {
+                    Files.deleteIfExists(filePath);
+                } catch (IOException e) {
                 }
 
-            });
-        }
+            }
+
+        });
+    }
 }

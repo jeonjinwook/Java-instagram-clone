@@ -22,13 +22,13 @@ public class Profile {
     @JoinColumn(name = "member_id")
     private Member user;
 
-    @Column(name="photo")
+    @Column(name = "photo")
     private String photo;
 
-    @Column(name="gender")
+    @Column(name = "gender")
     private String gender;
 
-    @Column(name="birthday")
+    @Column(name = "birthday")
     private String birthday;
 
 

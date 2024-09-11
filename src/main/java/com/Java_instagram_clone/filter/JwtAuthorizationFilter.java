@@ -2,7 +2,6 @@ package com.Java_instagram_clone.filter;
 
 import com.Java_instagram_clone.jwt.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

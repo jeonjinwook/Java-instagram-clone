@@ -11,6 +11,7 @@ public class KafkaConsumerListener {
             clientIdPrefix = "kafka-client"
     )
     public void kafkaTestItemIncoming(String message) {
+
         System.out.println("Received Message : " + message);
     }
 }

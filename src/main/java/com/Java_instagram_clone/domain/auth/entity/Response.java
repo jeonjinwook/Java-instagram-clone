@@ -15,7 +15,7 @@ public class Response {
 
     public ResponseEntity<?> success(Object data, String msg, HttpStatus status) {
         Body body = Body.builder()
-                .state(status.value())
+                .status(status.value())
                 .data(data)
                 .result("success")
                 .massage(msg)
@@ -38,7 +38,7 @@ public class Response {
 
     public ResponseEntity<?> fail(Object data, String msg, HttpStatus status) {
         Body body = Body.builder()
-                .state(status.value())
+                .status(status.value())
                 .data(data)
                 .result("fail")
                 .massage(msg)
@@ -53,7 +53,7 @@ public class Response {
 
     public ResponseEntity<?> invalidFields(LinkedList<LinkedHashMap<String, String>> errors) {
         Body body = Body.builder()
-                .state(HttpStatus.BAD_REQUEST.value())
+                .status(HttpStatus.BAD_REQUEST.value())
                 .data(Collections.emptyList())
                 .result("fail")
                 .massage("")
@@ -66,7 +66,7 @@ public class Response {
     @Builder
     private static class Body {
 
-        private int state;
+        private int status;
         private String result;
         private String massage;
         private Object data;

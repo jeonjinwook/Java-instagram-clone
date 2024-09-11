@@ -24,10 +24,16 @@ public class AuthController {
         return authService.emailValidation(email);
     }
 
-    @PostMapping("/sign-up")
-    public ResponseEntity<?> signUp(@RequestBody Member user) {
+    @GetMapping("/accountNameValidation")
+    public ResponseEntity<?> accountNameValidation(@RequestParam String accountName) {
+
+        return authService.accountNameValidation(accountName);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody Member user) {
         // validation check
-        return authService.signUp(user);
+        return authService.register(user);
     }
 
     @PostMapping("/login")

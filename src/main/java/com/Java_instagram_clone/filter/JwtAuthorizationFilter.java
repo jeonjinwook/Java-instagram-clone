@@ -2,6 +2,7 @@ package com.Java_instagram_clone.filter;
 
 import com.Java_instagram_clone.jwt.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,7 +48,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
                 try {
 
-                    this.jwtUtil.validate(header.substring(7), request);
+                    this.jwtUtil.validate(header.replaceAll(BEARER_TYPE, ""), request);
 
                 } catch (ExpiredJwtException e) {
 
@@ -58,7 +59,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
                 try {
 
-                    this.jwtUtil.validate(refreshHeader.substring(7), request);
+                    this.jwtUtil.validate(refreshHeader.replaceAll(BEARER_TYPE, ""), request);
 
                 } catch (ExpiredJwtException e) {
 

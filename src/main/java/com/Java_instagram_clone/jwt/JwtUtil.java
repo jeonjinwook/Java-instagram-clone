@@ -1,15 +1,20 @@
 package com.Java_instagram_clone.jwt;
 
 import com.Java_instagram_clone.domain.auth.service.CustomAuthDetailService;
+import com.Java_instagram_clone.domain.member.entity.Member;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -31,11 +36,13 @@ public class JwtUtil {
     private final Key key;
     private final CustomAuthDetailService authDetailsService;
     private final RedisTemplate redisTemplate;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final String BEARER_TYPE = "Bearer ";
 
-    public JwtUtil(@Value("${jwt.secret}") String secretKey, CustomAuthDetailService authDetailsService, RedisTemplate redisTemplate) {
+    public JwtUtil(@Value("${jwt.secret}") String secretKey, CustomAuthDetailService authDetailsService, RedisTemplate redisTemplate, AuthenticationManagerBuilder authenticationManagerBuilder) {
         this.authDetailsService = authDetailsService;
         this.redisTemplate = redisTemplate;
+        this.authenticationManagerBuilder = authenticationManagerBuilder;
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
@@ -145,5 +152,38 @@ public class JwtUtil {
         usernamePasswordAuthenticationToken.setDetails(
                 new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+    }
+
+    public void loginCreateToken(Member member, HttpServletResponse response) {
+
+        String AUTHORIZATION_HEADER = "Authorization";
+        String BEARER_TYPE = "Bearer ";
+        String REFRESH_AUTHORIZATION_HEADER = "RefreshAuthorization";
+        long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L;
+        long ACCESS_TOKEN_EXPIRE_TIME = 30 * 60 * 1000L;
+
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                member.getEmail(),
+                member.getPassword());
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        Object principal = authentication.getPrincipal();
+
+        UserDetails userDetails = (UserDetails) principal;
+
+        String accessToken = generateToken(userDetails, ACCESS_TOKEN_EXPIRE_TIME);
+
+        String refreshToken = generateToken(userDetails, REFRESH_TOKEN_EXPIRE_TIME);
+
+        response.addHeader(AUTHORIZATION_HEADER, BEARER_TYPE + accessToken);
+
+        response.addHeader(REFRESH_AUTHORIZATION_HEADER, BEARER_TYPE + refreshToken);
+
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        valueOperations.set("RT:" + authentication.getName(), refreshToken, REFRESH_TOKEN_EXPIRE_TIME, TimeUnit.MILLISECONDS);
+
+
     }
 }

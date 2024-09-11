@@ -40,6 +40,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("/api/feed/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+                                .requestMatchers("/api/profile/**").hasAnyRole("USER", "MANAGER", "ADMIN")
                                 .anyRequest().permitAll()
                 )
                 .headers(headerConfig -> headerConfig.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))

@@ -5,8 +5,11 @@ import com.Java_instagram_clone.domain.feed.entity.Feed;
 import com.Java_instagram_clone.domain.follow.entity.Follow;
 import com.Java_instagram_clone.domain.like.entity.Like;
 import com.Java_instagram_clone.domain.profile.entity.Profile;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,7 +33,7 @@ public class Member implements UserDetails {
     @Column(name = "MEMBER_ID")
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String phoneNumber;
 
     @Column(nullable = false)
@@ -45,31 +48,33 @@ public class Member implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @OneToMany(targetEntity = Feed.class, mappedBy = "user", cascade = CascadeType.PERSIST)
+    @OneToMany(targetEntity = Feed.class, mappedBy = "user", fetch = FetchType.EAGER)
     private List<Feed> feeds;
 
-    @OneToMany(targetEntity = Comment.class, mappedBy = "user", cascade = CascadeType.PERSIST)
+    @OneToMany(targetEntity = Comment.class, mappedBy = "user", fetch = FetchType.EAGER)
     private List<Comment> comments;
 
-    @OneToMany(targetEntity = Like.class, mappedBy = "user", cascade = CascadeType.PERSIST)
+    @OneToMany(targetEntity = Like.class, mappedBy = "user", fetch = FetchType.EAGER)
     private List<Like> likes;
 
-    @OneToMany(targetEntity = Profile.class, mappedBy = "user", cascade = CascadeType.PERSIST)
+    @OneToMany(targetEntity = Profile.class, mappedBy = "user", fetch = FetchType.EAGER)
     private List<Profile> profile;
 
-    @OneToMany(targetEntity = Follow.class, mappedBy = "follower", cascade = CascadeType.PERSIST)
-    private List<Follow> followers;
+    @OneToMany(targetEntity = Follow.class, mappedBy = "follower", fetch = FetchType.EAGER)
+    private List<Follow> follower;
 
-    @OneToMany(targetEntity = Follow.class, mappedBy = "following", cascade = CascadeType.PERSIST)
-    private List<Follow> followings;
+    @OneToMany(targetEntity = Follow.class, mappedBy = "following", fetch = FetchType.EAGER)
+    private List<Follow> following;
 
     @Column
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
+    @JsonIgnore
     private List<String> roles = new ArrayList<>();
 
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.roles.stream()
                 .map(SimpleGrantedAuthority::new)
@@ -77,26 +82,31 @@ public class Member implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public String getUsername() {
         return email;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return true;
     }

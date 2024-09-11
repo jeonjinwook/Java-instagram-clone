@@ -16,7 +16,7 @@ import java.util.*;
 @Service
 public class FileService {
 
-    private static final String uploadDir = System.getProperty("user.dir") + "/src/main/resources/uploadFile/";
+    private static final String uploadDir = System.getProperty("user.dir") + "/src/main/resources/static/uploadFile/";
 
     public ArrayList<String> uploadFile(MultipartFile[] uploadFiles) throws IOException {
 
@@ -61,4 +61,19 @@ public class FileService {
 
     }
 
+    public void removeFile(String[] files) throws IOException {
+
+            Arrays.stream(files).forEach(file -> {
+
+                Path filePath = Paths.get(uploadDir).resolve(file);
+
+                if (Files.exists(filePath)) {
+                    try {
+                        Files.deleteIfExists(filePath);
+                    } catch (IOException e) {}
+
+                }
+
+            });
+        }
 }

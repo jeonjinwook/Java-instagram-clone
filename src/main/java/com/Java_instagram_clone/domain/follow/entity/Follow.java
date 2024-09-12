@@ -1,8 +1,19 @@
 package com.Java_instagram_clone.domain.follow.entity;
 
 import com.Java_instagram_clone.domain.member.entity.Member;
-import jakarta.persistence.*;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Table(name = "Follow")
 @Entity(name = "Follow")
@@ -13,18 +24,20 @@ import lombok.*;
 @AllArgsConstructor
 public class Follow {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "FOLLOW_ID")
-    private Integer id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column(name = "FOLLOW_ID")
+  private Integer id;
 
-    @ManyToOne(targetEntity = Member.class)
-    private Member follower;
+  @ManyToOne(targetEntity = Member.class)
+  @JsonIgnore
+  private Member follower;
 
-    @ManyToOne(targetEntity = Member.class)
-    private Member following;
+  @ManyToOne(targetEntity = Member.class)
+  @JsonIgnore
+  private Member following;
 
-    @Column()
-    private Boolean checked;
+  @Column()
+  private Boolean checked;
 
 }

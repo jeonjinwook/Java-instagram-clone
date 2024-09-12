@@ -6,6 +6,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.DecodingException;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -103,21 +104,19 @@ public class JwtUtil {
 
     public String reNewAccessTokenFromRefreshToken(String refreshToken,
                                                    HttpServletRequest request) {
+            String username = extractUsername(refreshToken);
 
-        String username = extractUsername(refreshToken);
+            UserDetails userDetails = null;
 
-        UserDetails userDetails = null;
+            userDetails = this.authDetailsService.loadUserByUsername(username);
 
-        userDetails = this.authDetailsService.loadUserByUsername(username);
+            String token = generateToken(userDetails, ACCESS_TOKEN_EXPIRE_TIME);
 
-        String token = generateToken(userDetails, ACCESS_TOKEN_EXPIRE_TIME);
+            if (validateToken(token, userDetails)) {
 
-        if (validateToken(token, userDetails)) {
+                setAuthenticationContextHolder(userDetails, request);
 
-            setAuthenticationContextHolder(userDetails, request);
-
-        }
-
+            }
         return BEARER_TYPE + token;
     }
 

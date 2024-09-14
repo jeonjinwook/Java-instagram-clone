@@ -3,6 +3,7 @@ package com.Java_instagram_clone.cmn;
 import com.Java_instagram_clone.domain.auth.entity.Response;
 import io.jsonwebtoken.JwtException;
 import io.lettuce.core.RedisException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,13 +12,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
   private final Response response;
-
-  public GlobalExceptionHandler(Response response) {
-    this.response = response;
-  }
 
   @ExceptionHandler(JwtException.class)
   public ResponseEntity<?> handleCustomException(JwtException e) {

@@ -31,6 +31,7 @@ services:
     image: docker.elastic.co/logstash/logstash:7.17.16
     volumes:
       - ./logstash/pipeline/kafka-consumer.conf:/usr/share/logstash/pipeline/kafka-consumer.conf
+      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml  # Logstash 설정 파일
       - ${SINCEDB_URL}:/usr/share/logstash/sincedb
       - ${LOG_FILE_URL}:/usr/share/logstash/logs
     ports:

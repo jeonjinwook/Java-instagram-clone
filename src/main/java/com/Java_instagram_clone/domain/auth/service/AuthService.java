@@ -95,13 +95,12 @@ public class AuthService {
             return responseDto.fail("로그인에 실패했습니다.", HttpStatus.BAD_REQUEST);
         }
 
-
         return responseDto.success(user, "로그인에 성공했습니다.", HttpStatus.CREATED);
     }
 
     public ResponseEntity<?> logout(HttpServletRequest request) {
 
-        String accessToken = request.getHeader("Authorization").substring(7);
+        String accessToken = request.getHeader("Authorization").replaceAll("Bearer ", "");
 
         String userName = jwtUtil.extractUsername(accessToken);
 
@@ -110,5 +109,7 @@ public class AuthService {
         }
 
         return responseDto.success("로그아웃 되었습니다.");
+
+
     }
 }

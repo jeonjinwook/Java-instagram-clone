@@ -9,6 +9,9 @@ import com.Java_instagram_clone.enums.Authority;
 import com.Java_instagram_clone.jwt.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,99 +20,97 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final AuthRepository authRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final Response responseDto;
-    private final JwtUtil jwtUtil;
-    private final RedisTemplate<String, String> redisTemplate;
+  private final AuthRepository authRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final Response responseDto;
+  private final JwtUtil jwtUtil;
+  private final RedisTemplate<String, String> redisTemplate;
 
-    public ResponseEntity<?> emailValidation(String email) {
+  public ResponseEntity<?> emailValidation(String email) {
 
-        Member member = authRepository.findByEmail(email).orElse(null);
+    Member member = authRepository.findByEmail(email).orElse(null);
 
-        if (member != null) {
-            return responseDto.fail("이미 가입된 이메일 입니다.", HttpStatus.BAD_REQUEST);
-        }
-
-        return responseDto.success("사용할 수 있는 이메일 입니다.");
+    if (member != null) {
+      return responseDto.fail("이미 가입된 이메일 입니다.", HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<?> accountNameValidation(String accountName) {
+    return responseDto.success("사용할 수 있는 이메일 입니다.");
+  }
 
-        Member member = authRepository.findByAccountName(accountName).orElse(null);
+  public ResponseEntity<?> accountNameValidation(String accountName) {
 
-        if (member != null) {
-            return responseDto.fail("이미 가입한 닉네임 입니다.", HttpStatus.BAD_REQUEST);
-        }
+    Member member = authRepository.findByAccountName(accountName).orElse(null);
 
-        return responseDto.success("사용할 수 있는 닉네임 입니다.");
+    if (member != null) {
+      return responseDto.fail("이미 가입한 닉네임 입니다.", HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<?> register(Member user) {
-        if (authRepository.existsByEmail(user.getEmail())) {
-            return responseDto.fail("이미 회원가입된 이메일입니다.", HttpStatus.BAD_REQUEST);
-        }
+    return responseDto.success("사용할 수 있는 닉네임 입니다.");
+  }
 
-        Member member = Member.builder()
-                .email(user.getEmail())
-                .name(user.getName())
-                .accountName(user.getAccountName())
-                .phoneNumber(user.getPhoneNumber())
-                .password(passwordEncoder.encode(user.getPassword()))
-                .roles(Collections.singletonList(Authority.ROLE_USER.name()))
-                .build();
-        authRepository.save(member);
-
-        return responseDto.success("회원가입에 성공했습니다.");
+  public ResponseEntity<?> register(Member user) {
+    if (authRepository.existsByEmail(user.getEmail())) {
+      return responseDto.fail("이미 회원가입된 이메일입니다.", HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<?> login(Member member, HttpServletResponse response) {
+    Member member = Member.builder()
+        .email(user.getEmail())
+        .name(user.getName())
+        .accountName(user.getAccountName())
+        .phoneNumber(user.getPhoneNumber())
+        .password(passwordEncoder.encode(user.getPassword()))
+        .roles(Collections.singletonList(Authority.ROLE_USER.name()))
+        .build();
+    authRepository.save(member);
 
-        if (authRepository.findByEmail(member.getEmail()).orElse(null) == null) {
-            return responseDto.fail("해당하는 유저가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
-        }
+    return responseDto.success("회원가입에 성공했습니다.");
+  }
 
-        Member userInfo = authRepository.findByEmail(member.getEmail()).orElse(new Member());
-        ResponseMember user = new ResponseMember();
-        try {
+  @Transactional
+  public ResponseEntity<?> login(Member member, HttpServletResponse response) {
 
-            jwtUtil.loginCreateToken(member, response);
-
-            List<Follow> follower = userInfo.getFollower();
-            List<Follow> following = userInfo.getFollowing();
-
-            userInfo.setFollower(follower);
-            userInfo.setFollowing(following);
-
-            BeanUtils.copyProperties(userInfo, user);
-
-
-        } catch (Exception e) {
-            return responseDto.fail("로그인에 실패했습니다.", HttpStatus.BAD_REQUEST);
-        }
-
-        return responseDto.success(user, "로그인에 성공했습니다.", HttpStatus.CREATED);
+    if (authRepository.findByEmail(member.getEmail()).orElse(null) == null) {
+      return responseDto.fail("해당하는 유저가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<?> logout(HttpServletRequest request) {
+    Member userInfo = authRepository.findByEmail(member.getEmail()).orElse(new Member());
+    ResponseMember user = new ResponseMember();
+    try {
 
-        String accessToken = request.getHeader("Authorization").replaceAll("Bearer ", "");
+      jwtUtil.loginCreateToken(member, response);
 
-        String userName = jwtUtil.extractUsername(accessToken);
+      List<Follow> follower = userInfo.getFollower();
+      List<Follow> following = userInfo.getFollowing();
 
-        if (redisTemplate.opsForValue().get("RT:" + userName) != null) {
-            redisTemplate.delete("RT:" + userName);
-        }
+      userInfo.setFollower(follower);
+      userInfo.setFollowing(following);
 
-        return responseDto.success("로그아웃 되었습니다.");
+      BeanUtils.copyProperties(userInfo, user);
 
 
+    } catch (Exception e) {
+      return responseDto.fail("로그인에 실패했습니다.", HttpStatus.BAD_REQUEST);
     }
+
+    return responseDto.success(user, "로그인에 성공했습니다.", HttpStatus.CREATED);
+  }
+
+  public ResponseEntity<?> logout(HttpServletRequest request) {
+
+    String accessToken = request.getHeader("Authorization").replaceAll("Bearer ", "");
+
+    String userName = jwtUtil.extractUsername(accessToken);
+
+    if (redisTemplate.opsForValue().get("RT:" + userName) != null) {
+      redisTemplate.delete("RT:" + userName);
+    }
+
+    return responseDto.success("로그아웃 되었습니다.");
+
+
+  }
 }

@@ -57,22 +57,22 @@ public class Member implements UserDetails {
   @Column(nullable = false)
   private String password;
 
-  @OneToMany(targetEntity = Feed.class, mappedBy = "user", fetch = FetchType.LAZY)
+  @OneToMany(targetEntity = Feed.class, mappedBy = "user", fetch = FetchType.EAGER)
   private List<Feed> feeds;
 
-  @OneToMany(targetEntity = Comment.class, mappedBy = "user", fetch = FetchType.LAZY)
+  @OneToMany(targetEntity = Comment.class, mappedBy = "user", fetch = FetchType.EAGER)
   private List<Comment> comments;
 
-  @OneToMany(targetEntity = Like.class, mappedBy = "user", fetch = FetchType.LAZY)
+  @OneToMany(targetEntity = Like.class, mappedBy = "user", fetch = FetchType.EAGER)
   private List<Like> likes;
 
-  @OneToMany(targetEntity = Profile.class, mappedBy = "user", fetch = FetchType.LAZY)
+  @OneToMany(targetEntity = Profile.class, mappedBy = "user", fetch = FetchType.EAGER)
   private List<Profile> profile;
 
-  @OneToMany(targetEntity = Follow.class, mappedBy = "follower", fetch = FetchType.LAZY)
+  @OneToMany(targetEntity = Follow.class, mappedBy = "follower", fetch = FetchType.EAGER)
   private List<Follow> follower;
 
-  @OneToMany(targetEntity = Follow.class, mappedBy = "following", fetch = FetchType.LAZY)
+  @OneToMany(targetEntity = Follow.class, mappedBy = "following", fetch = FetchType.EAGER)
   private List<Follow> following;
 
   @Column

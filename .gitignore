@@ -148,3 +148,4 @@ postmaster.pid
 postmaster.opts
 /.env
 /sincedb/sincedb_file
+/Java-instagram-clone.iml

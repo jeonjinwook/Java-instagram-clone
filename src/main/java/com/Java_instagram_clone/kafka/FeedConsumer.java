@@ -1,14 +1,16 @@
 package com.Java_instagram_clone.kafka;
 
 import com.Java_instagram_clone.component.WebSocketHandler;
-import com.Java_instagram_clone.domain.member.entity.ResponseMember;
+import com.Java_instagram_clone.domain.follow.entity.Follow;
 import com.Java_instagram_clone.domain.member.repository.MemberRepository;
+import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -20,22 +22,31 @@ public class FeedConsumer {
   private final MemberRepository memberRepository;
 
   @KafkaListener(topics = "feed_notifications", groupId = "feed_notification_group")
-  public void listen(ConsumerRecord<String, String> record) {
-    String notificationMessage = record.value();
-    String userId = "1";
+  @Transactional
+  public void listen(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
+    try {
+      String notificationMessage = record.value();
 
-    List<ResponseMember> follows = memberRepository.findFollowerAllByUserId(Long.valueOf(userId));
-    if (follows != null) {
+      String userId = record.key();
 
-      for (ResponseMember follow : follows) {
+      List<Follow> follows = memberRepository.findFollowerAllByUserId(Long.valueOf(userId));
+      if (follows != null) {
 
-        try {
-          webSocketHandler.sendMessageToUser(String.valueOf(follow.getId()), notificationMessage);
-        } catch (IOException e) {
-          log.error("WebSocket ERROR{} ", e.getMessage());
+        for (Follow follow : follows) {
+
+          try {
+            webSocketHandler.sendMessageToUser(String.valueOf(follow.getId()), notificationMessage);
+          } catch (IOException e) {
+            log.error("WebSocket ERROR{} ", e.getMessage());
+            return;
+          }
+
         }
-
       }
+      acknowledgment.acknowledge();
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      throw e;
     }
   }
 }

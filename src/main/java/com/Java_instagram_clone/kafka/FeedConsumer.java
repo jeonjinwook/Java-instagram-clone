@@ -1,11 +1,9 @@
 package com.Java_instagram_clone.kafka;
 
 import com.Java_instagram_clone.component.WebSocketHandler;
-import com.Java_instagram_clone.domain.follow.entity.Follow;
 import com.Java_instagram_clone.domain.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -29,20 +27,13 @@ public class FeedConsumer {
 
       String userId = record.key();
 
-      List<Follow> follows = memberRepository.findFollowerAllByUserId(Long.valueOf(userId));
-      if (follows != null) {
-
-        for (Follow follow : follows) {
-
-          try {
-            webSocketHandler.sendMessageToUser(String.valueOf(follow.getId()), notificationMessage);
-          } catch (IOException e) {
-            log.error("WebSocket ERROR{} ", e.getMessage());
-            return;
-          }
-
-        }
+      try {
+        webSocketHandler.sendMessageToUser(String.valueOf(userId), notificationMessage);
+      } catch (IOException e) {
+        log.error("WebSocket ERROR{} ", e.getMessage());
+        return;
       }
+
       acknowledgment.acknowledge();
     } catch (Exception e) {
       log.error(e.getMessage());

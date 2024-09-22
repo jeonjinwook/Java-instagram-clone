@@ -42,7 +42,7 @@ public class CommentService {
 
       feedProducer.sendNotification(
           user.getAccountName() + "님이 올리신 " + feed.getContents() + " 게시물에 댓글이 등록되었습니다.",
-          String.valueOf(requestComment.getUserNo()));
+          String.valueOf(user.getId()));
 
       return responseDto.success(comment, "정상적으로 댓글이 등록되었습니다.", HttpStatus.OK);
     }

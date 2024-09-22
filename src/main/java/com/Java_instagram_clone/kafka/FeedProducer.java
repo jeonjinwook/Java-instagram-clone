@@ -11,7 +11,7 @@ public class FeedProducer {
   private static final String TOPIC = "feed_notifications";
   private final KafkaTemplate<String, String> kafkaTemplate;
 
-  public void sendNotification(String message, String feedId) {
-    kafkaTemplate.send(TOPIC, feedId, message);
+  public void sendNotification(String message, String userNo) {
+    kafkaTemplate.send(TOPIC, userNo, message);
   }
 }

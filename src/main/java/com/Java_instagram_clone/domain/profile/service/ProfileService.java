@@ -6,63 +6,62 @@ import com.Java_instagram_clone.domain.profile.entity.RequestProfile;
 import com.Java_instagram_clone.domain.profile.entity.ResponseProfile;
 import com.Java_instagram_clone.domain.profile.repository.ProfileRepository;
 import com.Java_instagram_clone.file.FileService;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
 
-    private final ProfileRepository profileRepository;
-    private final FileService fileService;
-    private final Response responseDto;
+  private final ProfileRepository profileRepository;
+  private final FileService fileService;
+  private final Response responseDto;
 
-    public ResponseEntity<?> findProfileById(RequestProfile profile) {
+  public ResponseEntity<?> findProfileById(RequestProfile profile) {
 
-        long userNo = profile.getUserNo();
+    long userNo = profile.getUserNo();
 
-        ResponseProfile memberProfile = profileRepository.findProfileById(userNo);
+    ResponseProfile memberProfile = profileRepository.findProfileById(userNo);
 
-        return responseDto.success(memberProfile, "정상적으로 조회했습니다.", HttpStatus.OK);
+    return responseDto.success(memberProfile, "정상적으로 조회했습니다.", HttpStatus.OK);
 
-    }
+  }
 
-    public ResponseEntity<?> create(MultipartFile[] uploadFiles) {
+  public ResponseEntity<?> create(MultipartFile[] uploadFiles) {
 
-        ArrayList<String> createFiles = new ArrayList<>();
+    List<String> createFiles = new ArrayList<>();
 
-        try {
+    try {
 
-            if (uploadFiles != null) {
-                createFiles = fileService.uploadFile(uploadFiles);
-            }
+      if (uploadFiles != null) {
+        createFiles = fileService.uploadFiles(uploadFiles);
+      }
 
-            if (!createFiles.isEmpty()) {
+      if (!createFiles.isEmpty()) {
 
-                for (String file : createFiles) {
+        for (String file : createFiles) {
 
-                    Profile profile = Profile.builder()
-                            .photo(file)
-                            .gender("")
-                            .birthday("")
-                            .build();
-                    profileRepository.save(profile);
+          Profile profile = Profile.builder()
+              .photo(file)
+              .gender("")
+              .birthday("")
+              .build();
+          profileRepository.save(profile);
 
-                }
-
-            }
-        } catch (Exception e) {
-            return responseDto.fail("시스템 오류입니다. 관리자에게 문의하세요", HttpStatus.NOT_FOUND);
         }
 
-        return responseDto.success("정상적으로 프로필 업데이트 했습니다.");
+      }
+    } catch (Exception e) {
+      return responseDto.fail("시스템 오류입니다. 관리자에게 문의하세요", HttpStatus.NOT_FOUND);
     }
 
+    return responseDto.success("정상적으로 프로필 업데이트 했습니다.");
+  }
 
 //    async create(profile: ProfilesDTO, photo: Express.Multer.File) {
 //        if (photo !== undefined || null) {

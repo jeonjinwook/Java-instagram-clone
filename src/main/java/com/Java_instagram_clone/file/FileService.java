@@ -1,78 +1,94 @@
 package com.Java_instagram_clone.file;
 
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@Slf4j
 public class FileService {
 
-    private static final String uploadDir = System.getProperty("user.dir") + "/src/main/resources/static/uploadFile/";
+  private final Path uploadDir;
 
-    public ArrayList<String> uploadFile(MultipartFile[] uploadFiles) throws IOException {
+  public FileService(@Value("${upload.dir}") String uploadDir) {
+    if (uploadDir == null || uploadDir.isEmpty()) {
+      throw new IllegalArgumentException("upload.dir 프로퍼티가 설정되지 않았습니다.");
+    }
+    this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();
+    try {
+      Files.createDirectories(this.uploadDir);
+    } catch (IOException e) {
+      throw new RuntimeException("Could not create upload directory!", e);
+    }
+  }
 
-        ArrayList<String> createFiles = new ArrayList<>();
+  public List<String> uploadFiles(MultipartFile[] uploadFiles) throws IOException {
+    List<String> uploadedFileNames = new ArrayList<>();
 
-        try {
-            // 다중 파일 저장
-            for (MultipartFile file : uploadFiles) {
-                createFiles.add(saveFile(file));
-            }
-        } catch (IOException e) {
-            throw e;
-        }
-        // 파일 추출 테스트
-        return createFiles;
+    for (MultipartFile file : uploadFiles) {
+      String fileName = saveFile(file);
+      uploadedFileNames.add(fileName);
     }
 
-    private String saveFile(MultipartFile file) throws IOException {
-        String originalFileName = file.getOriginalFilename();
+    return uploadedFileNames;
+  }
 
-        String fileExtension = "";
-        if (originalFileName != null && originalFileName.contains(".")) {
-            fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-        }
+  private String saveFile(MultipartFile file) throws IOException {
+    String originalFileName = StringUtils.cleanPath(
+        Objects.requireNonNull(file.getOriginalFilename()));
 
-        String uploadFileName = UUID.randomUUID() + fileExtension;
-
-        Path uploadPath = Paths.get(uploadDir);
-
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        Path filePath = uploadPath.resolve(uploadFileName);
-        try {
-            file.transferTo(filePath.toFile());
-        } catch (IOException e) {
-            throw e;
-        }
-
-        return uploadFileName;
-
+    if (originalFileName.isEmpty()) {
+      throw new IOException("Invalid file name");
     }
 
-    public void removeFile(String[] files) throws IOException {
+    String fileExtension = "";
 
-        Arrays.stream(files).forEach(file -> {
-
-            Path filePath = Paths.get(uploadDir).resolve(file);
-
-            if (Files.exists(filePath)) {
-                try {
-                    Files.deleteIfExists(filePath);
-                } catch (IOException e) {
-                }
-
-            }
-
-        });
+    int dotIndex = originalFileName.lastIndexOf('.');
+    if (dotIndex >= 0) {
+      fileExtension = originalFileName.substring(dotIndex);
     }
+
+    String newFileName = UUID.randomUUID() + fileExtension;
+
+    Path targetLocation = this.uploadDir.resolve(newFileName).normalize();
+
+    if (!targetLocation.startsWith(this.uploadDir)) {
+      throw new IOException("현재 디렉토리 외부에 파일을 저장할 수 없습니다.");
+    }
+
+    // 파일 저장
+    file.transferTo(targetLocation.toFile());
+
+    return newFileName;
+  }
+
+  public void removeFiles(String[] fileNames) {
+    for (String fileName : fileNames) {
+      try {
+        Path filePath = this.uploadDir.resolve(fileName).normalize();
+
+        if (!filePath.startsWith(this.uploadDir)) {
+          throw new IOException("정상적인 경로가 아닙니다.");
+        }
+
+        if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
+          Files.delete(filePath);
+        } else {
+          log.warn("해당 파일을 찾을 수 없습니다.: {}", fileName);
+        }
+      } catch (IOException e) {
+        log.error("Could not delete file: {}", fileName, e);
+      }
+    }
+  }
 }

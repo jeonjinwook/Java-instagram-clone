@@ -9,7 +9,7 @@ import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class P6SpyFomatter implements MessageFormattingStrategy {
+public class P6SpyFormatter implements MessageFormattingStrategy {
 
   @PostConstruct
   public void setLogMessageFormat() {
@@ -19,21 +19,25 @@ public class P6SpyFomatter implements MessageFormattingStrategy {
   @Override
   public String formatMessage(int connectionId, String now, long elapsed, String category,
       String prepared, String sql, String url) {
-    sql = formatSql(category, sql);
-    return String.format("[%s] | %d ms | %s", category, elapsed, formatSql(category, sql));
+    String formattedSql = formatSql(category, sql);
+    return String.format("[%s] | %d ms | %s", category, elapsed, formattedSql);
   }
 
   private String formatSql(String category, String sql) {
-    if (sql != null && !sql.trim().isEmpty() && Category.STATEMENT.getName().equals(category)) {
-      String trimmedSQL = sql.trim().toLowerCase(Locale.ROOT);
-      if (trimmedSQL.startsWith("create") || trimmedSQL.startsWith("alter")
-          || trimmedSQL.startsWith("comment")) {
-        sql = FormatStyle.DDL.getFormatter().format(sql);
-      } else {
-        sql = FormatStyle.BASIC.getFormatter().format(sql);
-      }
+    if (sql == null || sql.trim().isEmpty()) {
       return sql;
     }
-    return sql;
+
+    if (!Category.STATEMENT.getName().equals(category)) {
+      return sql;
+    }
+
+    String trimmedSql = sql.trim();
+    String lowerCaseSql = trimmedSql.toLowerCase(Locale.ROOT);
+
+    FormatStyle style = (lowerCaseSql.startsWith("create") || lowerCaseSql.startsWith("alter")
+        || lowerCaseSql.startsWith("comment")) ? FormatStyle.DDL : FormatStyle.BASIC;
+
+    return style.getFormatter().format(sql);
   }
 }

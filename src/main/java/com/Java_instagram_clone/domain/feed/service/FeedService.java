@@ -53,11 +53,11 @@ public class FeedService {
 
   public ResponseEntity<?> create(MultipartFile[] files, RequestFeed feed) throws Exception {
 
-    ArrayList<String> createFiles = new ArrayList<>();
+    List<String> createFiles = new ArrayList<>();
     try {
 
       if (files != null) {
-        createFiles = fileService.uploadFile(files);
+        createFiles = fileService.uploadFiles(files);
       }
 
       if (!createFiles.isEmpty()) {
@@ -154,12 +154,8 @@ public class FeedService {
     Feed feed = feedRepository.findById(id).orElse(new Feed());
     String[] files = feed.getFiles().split(",");
 
-    try {
-      fileService.removeFile(files);
-      feedRepository.deleteById(id);
-    } catch (IOException e) {
-      return responseDto.fail("파일 삭제중 오류가 발생 했습니다." + e, HttpStatus.BAD_REQUEST);
-    }
+    fileService.removeFiles(files);
+    feedRepository.deleteById(id);
 
     return responseDto.success("장상적으로 처리 했습니다.");
   }

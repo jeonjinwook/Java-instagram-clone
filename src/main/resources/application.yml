@@ -75,3 +75,6 @@ decorator:
 jwt:
   secret: sEfnEaka977Tg8?sy5PjdSXhRHB8f6Ts3g3CM5Cc
 
+upload:
+  dir: "${user.dir}/src/main/resources/static/uploadFile"
+

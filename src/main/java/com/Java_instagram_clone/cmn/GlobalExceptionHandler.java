@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(RedisException.class)
   public ResponseEntity<?> handleRedisException(RedisException e) {
-    log.error("Reids ERROR{} :", String.valueOf(e));
+    log.error("Redis ERROR{} :", String.valueOf(e));
 
     return response.fail("Redis 오류", HttpStatus.BAD_REQUEST);
   }

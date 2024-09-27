@@ -1,83 +1,93 @@
 package com.Java_instagram_clone.filter;
 
+import com.Java_instagram_clone.domain.auth.service.CustomAuthDetailService;
 import com.Java_instagram_clone.jwt.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.ObjectUtils;
 
-import java.io.IOException;
-
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
-    private final JwtUtil jwtUtil;
+  private static final String AUTHORIZATION_HEADER = "Authorization";
+  private static final String BEARER_TYPE = "Bearer ";
 
-    public JwtAuthorizationFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
-        super(authenticationManager);
-        this.jwtUtil = jwtUtil;
-    }
+  private final JwtUtil jwtUtil;
+  private final CustomAuthDetailService customAuthDetailService;
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-        String AUTHORIZATION_HEADER = "Authorization";
-        String REFRESH_AUTHORIZATION_HEADER = "RefreshAuthorization";
-        String BEARER_TYPE = "Bearer ";
+  public JwtAuthorizationFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil,
+      CustomAuthDetailService customAuthDetailService) {
+    super(authenticationManager);
+    this.jwtUtil = jwtUtil;
+    this.customAuthDetailService = customAuthDetailService;
+  }
 
-        String header = request.getHeader(AUTHORIZATION_HEADER);
-        String refreshHeader = request.getHeader(REFRESH_AUTHORIZATION_HEADER);
-        String accessToken = null;
-        String refreshToken = null;
-        try {
+  @Override
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+      FilterChain chain)
+      throws IOException, ServletException {
 
-            if ((!ObjectUtils.isEmpty(header)) && (header.startsWith(BEARER_TYPE))) {
+    String accessToken = resolveToken(request.getHeader(AUTHORIZATION_HEADER));
 
-                accessToken = header;
+    if (accessToken != null) {
+      if (jwtUtil.isTokenBlacklisted(accessToken)) {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        return;
+      }
 
-                if ((!ObjectUtils.isEmpty(refreshHeader)) && (refreshHeader.startsWith(
-                        BEARER_TYPE))) {
+      try {
+        jwtUtil.validateAccessToken(accessToken);
 
-                    refreshToken = refreshHeader;
+        String username = jwtUtil.getUsernameFromToken(accessToken);
 
-                }
+        setAuthentication(username);
 
-                try {
+      } catch (ExpiredJwtException e) {
+        String username = e.getClaims().getSubject();
+        String newAccessToken = jwtUtil.reIssueAccessToken(username);
 
-                    this.jwtUtil.validate(header.replaceAll(BEARER_TYPE, ""), request);
-
-                } catch (ExpiredJwtException e) {
-
-                    accessToken = this.jwtUtil.reNewAccessTokenFromRefreshToken(refreshToken,
-                            request);
-
-                }
-
-                try {
-
-                    this.jwtUtil.validate(refreshHeader.replaceAll(BEARER_TYPE, ""), request);
-
-                } catch (ExpiredJwtException e) {
-
-                    refreshToken = this.jwtUtil.reNewRefreshTokenFromAccessToken(accessToken,
-                            request);
-
-                }
-
-            }
-
-
-        } catch (ExpiredJwtException e) {
+        if (newAccessToken != null) {
+          response.setHeader(AUTHORIZATION_HEADER, BEARER_TYPE + newAccessToken);
+          setAuthentication(username);
+        } else {
+          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+          return;
         }
-
-        response.setHeader(AUTHORIZATION_HEADER, accessToken);
-        response.setHeader(REFRESH_AUTHORIZATION_HEADER, refreshToken);
-
-        chain.doFilter(request, response);
+      } catch (JwtException | IllegalArgumentException e) {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        return;
+      }
     }
 
+    chain.doFilter(request, response);
+  }
 
+  private String resolveToken(String header) {
+    if (!ObjectUtils.isEmpty(header) && header.startsWith(BEARER_TYPE)) {
+      return header.substring(BEARER_TYPE.length());
+    }
+    return null;
+  }
+
+  private void setAuthentication(String username) {
+    UserDetails userDetails = customAuthDetailService.loadUserByUsername(username);
+    Authentication authentication = new UsernamePasswordAuthenticationToken(
+        userDetails, null, userDetails.getAuthorities()
+    );
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+  }
 }
+
+
+
+

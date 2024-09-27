@@ -2,26 +2,30 @@ package com.Java_instagram_clone.domain.auth.service;
 
 import com.Java_instagram_clone.domain.auth.entity.Response;
 import com.Java_instagram_clone.domain.auth.repository.AuthRepository;
-import com.Java_instagram_clone.domain.follow.entity.Follow;
 import com.Java_instagram_clone.domain.member.entity.Member;
 import com.Java_instagram_clone.domain.member.entity.ResponseMember;
 import com.Java_instagram_clone.enums.Authority;
 import com.Java_instagram_clone.jwt.JwtUtil;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
   private final AuthRepository authRepository;
@@ -72,45 +76,54 @@ public class AuthService {
 
   @Transactional
   public ResponseEntity<?> login(Member member, HttpServletResponse response) {
-
-    if (authRepository.findByEmail(member.getEmail()).orElse(null) == null) {
+    Optional<Member> optionalMember = authRepository.findByEmail(member.getEmail());
+    if (optionalMember.isEmpty()) {
       return responseDto.fail("해당하는 유저가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
     }
 
-    Member userInfo = authRepository.findByEmail(member.getEmail()).orElse(new Member());
-    ResponseMember user = new ResponseMember();
-    try {
+    Member userInfo = optionalMember.get();
 
-      jwtUtil.loginCreateToken(member, response);
-
-      List<Follow> follower = userInfo.getFollower();
-      List<Follow> following = userInfo.getFollowing();
-
-      userInfo.setFollower(follower);
-      userInfo.setFollowing(following);
-
-      BeanUtils.copyProperties(userInfo, user);
-
-
-    } catch (Exception e) {
-      return responseDto.fail("로그인에 실패했습니다.", HttpStatus.BAD_REQUEST);
+    // 비밀번호 검증 (예: BCryptPasswordEncoder 사용)
+    if (!passwordEncoder.matches(member.getPassword(), userInfo.getPassword())) {
+      return responseDto.fail("비밀번호가 일치하지 않습니다.", HttpStatus.UNAUTHORIZED);
     }
 
-    return responseDto.success(user, "로그인에 성공했습니다.", HttpStatus.CREATED);
+    try {
+      jwtUtil.loginCreateToken(userInfo.getEmail(), response);
+
+      ResponseMember userResponse = new ResponseMember();
+      BeanUtils.copyProperties(userInfo, userResponse, "password");
+
+      return responseDto.success(userResponse, "로그인에 성공했습니다.", HttpStatus.OK);
+
+    } catch (Exception e) {
+      log.error("로그인 중 오류 발생: {}", e.getMessage(), e);
+      return responseDto.fail("로그인에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   public ResponseEntity<?> logout(HttpServletRequest request) {
-
-    String accessToken = request.getHeader("Authorization").replaceAll("Bearer ", "");
-
-    String userName = jwtUtil.extractUsername(accessToken);
-
-    if (redisTemplate.opsForValue().get("RT:" + userName) != null) {
-      redisTemplate.delete("RT:" + userName);
+    String header = request.getHeader("Authorization");
+    if (ObjectUtils.isEmpty(header) || !header.startsWith("Bearer ")) {
+      return responseDto.fail("유효한 액세스 토큰이 없습니다.", HttpStatus.BAD_REQUEST);
     }
 
-    return responseDto.success("로그아웃 되었습니다.");
+    String accessToken = header.substring("Bearer ".length());
 
+    try {
+      jwtUtil.logout(accessToken);
 
+      return responseDto.success("로그아웃 되었습니다.");
+
+    } catch (ExpiredJwtException e) {
+      return responseDto.fail("이미 만료된 토큰입니다.", HttpStatus.BAD_REQUEST);
+    } catch (JwtException | IllegalArgumentException e) {
+      return responseDto.fail("유효하지 않은 토큰입니다.", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      log.error("로그아웃 중 오류 발생: {}", e.getMessage(), e);
+      return responseDto.fail("로그아웃에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
+
+
 }

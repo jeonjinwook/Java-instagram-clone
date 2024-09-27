@@ -4,6 +4,7 @@ import com.Java_instagram_clone.cmn.UserCmnDto;
 import com.Java_instagram_clone.domain.auth.repository.AuthRepository;
 import com.Java_instagram_clone.domain.member.entity.Member;
 import com.Java_instagram_clone.jwt.JwtUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,20 +22,23 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Slf4j
 public class UserCommonDataAspect {
 
+  private static final String AUTHORIZATION_HEADER = "Authorization";
+  private static final String BEARER_PREFIX = "Bearer ";
+
   private final AuthRepository authRepository;
   private final JwtUtil jwtUtil;
 
   @Pointcut("execution(public * com.Java_instagram_clone.domain..controller..*(..))")
-  private void getCmnController() {
+  private void controllerMethods() {
   }
 
-  @Around("getCmnController()")
-  public Object action(ProceedingJoinPoint joinPoint) throws Throwable {
-    setUserCmnData(joinPoint);
+  @Around("controllerMethods()")
+  public Object addUserCommonData(ProceedingJoinPoint joinPoint) throws Throwable {
+    setUserCommonData(joinPoint);
     return joinPoint.proceed();
   }
 
-  private void setUserCmnData(ProceedingJoinPoint joinPoint) {
+  private void setUserCommonData(ProceedingJoinPoint joinPoint) {
 
     Object[] args = joinPoint.getArgs();
 
@@ -60,24 +64,28 @@ public class UserCommonDataAspect {
 
   private Member getRequestUser(HttpServletRequest request) {
 
-    String token = request.getHeader("Authorization");
+    String token = request.getHeader(AUTHORIZATION_HEADER);
 
-    if (token == null || "null".equalsIgnoreCase(token)) {
+    if (token == null || token.trim().isEmpty() || "null".equalsIgnoreCase(token.trim())) {
       return null;
     }
 
-    if (token.startsWith("Bearer ")) {
-      token = token.substring(7);
+    if (token.startsWith(BEARER_PREFIX)) {
+      token = token.substring(BEARER_PREFIX.length());
     }
 
     String userName;
     try {
-      userName = jwtUtil.extractUsername(token);
+      userName = jwtUtil.getUsernameFromToken(token);
+    } catch (ExpiredJwtException e) {
+      log.warn("만료된 토큰입니다: {}", e.getMessage());
+      return null;
     } catch (Exception e) {
-      log.error("유저 공통 데이터 세팅 중 오류{}", e.getMessage());
+      log.error("토큰에서 사용자명을 추출하는 중 오류 발생: {}", e.getMessage(), e);
       return null;
     }
 
     return authRepository.findByEmail(userName).orElse(null);
   }
 }
+

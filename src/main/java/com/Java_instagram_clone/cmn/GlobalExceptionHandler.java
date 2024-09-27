@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(RedisException.class)
   public ResponseEntity<?> handleRedisException(RedisException e) {
-    log.error("Redis ERROR{} :", String.valueOf(e));
+    log.error("Redis ERROR : {}", String.valueOf(e));
 
     return response.fail("Redis 오류", HttpStatus.BAD_REQUEST);
   }
@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
   //여기부턴 클라이언트 측의 잘못된 요청에 의한 에러를 처리해줌.
   @ExceptionHandler(Exception.class) // nullPointerExceptiono발생시
   protected ResponseEntity<?> handleException(Exception e) {
-    log.error("Server ERROR{} :", String.valueOf(e));
+    log.error("Server ERROR : {}", String.valueOf(e));
     return response.fail("서버 오류", HttpStatus.BAD_REQUEST);
   }
 

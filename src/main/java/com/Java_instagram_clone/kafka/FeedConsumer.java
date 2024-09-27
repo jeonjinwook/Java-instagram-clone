@@ -1,8 +1,6 @@
 package com.Java_instagram_clone.kafka;
 
 import com.Java_instagram_clone.component.WebSocketHandler;
-import com.Java_instagram_clone.domain.member.repository.MemberRepository;
-import jakarta.transaction.Transactional;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,27 +15,21 @@ import org.springframework.stereotype.Service;
 public class FeedConsumer {
 
   private final WebSocketHandler webSocketHandler;
-  private final MemberRepository memberRepository;
 
   @KafkaListener(topics = "feed_notifications", groupId = "feed_notification_group")
-  @Transactional
   public void listen(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
+    String notificationMessage = record.value();
+    String userId = record.key();
+
     try {
-      String notificationMessage = record.value();
-
-      String userId = record.key();
-
-      try {
-        webSocketHandler.sendMessageToUser(String.valueOf(userId), notificationMessage);
-      } catch (IOException e) {
-        log.error("WebSocket ERROR{} ", e.getMessage());
-        return;
-      }
-
+      webSocketHandler.sendMessageToUser(userId, notificationMessage);
       acknowledgment.acknowledge();
+    } catch (IOException e) {
+      log.error("WebSocket 오류: {}", e.getMessage(), e);
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("메시지 처리 중 오류 발생: {}", e.getMessage(), e);
       throw e;
     }
   }
 }
+

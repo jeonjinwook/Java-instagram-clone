@@ -147,5 +147,5 @@ pg_logs/
 postmaster.pid
 postmaster.opts
 /.env
-/sincedb/sincedb_file
+/sincedb/sincedb_file*
 /Java-instagram-clone.iml

@@ -1,6 +1,7 @@
 package com.Java_instagram_clone.config;
 
 
+import com.Java_instagram_clone.domain.auth.service.CustomAuthDetailService;
 import com.Java_instagram_clone.filter.JwtAuthorizationFilter;
 import com.Java_instagram_clone.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class SecurityConfig {
 
   private final JwtUtil jwtUtil;
   private final UserDetailsService userDetailsService;
+  private final CustomAuthDetailService customAuthDetailService;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -44,7 +46,8 @@ public class SecurityConfig {
         .authenticationProvider(authenticationProvider())
         .addFilter(new JwtAuthorizationFilter(
             authenticationManager(http.getSharedObject(AuthenticationConfiguration.class)),
-            jwtUtil))
+            jwtUtil,
+            customAuthDetailService))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .cors(Customizer.withDefaults()); // CORS 설정 활성화

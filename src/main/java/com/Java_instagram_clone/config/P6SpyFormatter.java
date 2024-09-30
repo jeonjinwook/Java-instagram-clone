@@ -4,7 +4,10 @@ import com.p6spy.engine.logging.Category;
 import com.p6spy.engine.spy.P6SpyOptions;
 import com.p6spy.engine.spy.appender.MessageFormattingStrategy;
 import jakarta.annotation.PostConstruct;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
+import java.util.Stack;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,7 +23,11 @@ public class P6SpyFormatter implements MessageFormattingStrategy {
   public String formatMessage(int connectionId, String now, long elapsed, String category,
       String prepared, String sql, String url) {
     String formattedSql = formatSql(category, sql);
-    return String.format("[%s] | %d ms | %s", category, elapsed, formattedSql);
+    Date currentDate = new Date();
+    SimpleDateFormat format1 = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
+
+    return format1.format(currentDate) + " | " + "OperationTime : " + elapsed + "ms" + formattedSql
+        + createStack();
   }
 
   private String formatSql(String category, String sql) {
@@ -39,5 +46,23 @@ public class P6SpyFormatter implements MessageFormattingStrategy {
         || lowerCaseSql.startsWith("comment")) ? FormatStyle.DDL : FormatStyle.BASIC;
 
     return style.getFormatter().format(sql);
+  }
+
+  private String createStack() {
+    Stack<String> callStack = new Stack<>();
+    StackTraceElement[] stackTrace = new Throwable().getStackTrace();
+    for (StackTraceElement stackTraceElement : stackTrace) {
+      String trace = stackTraceElement.toString();
+      if (trace.startsWith("com.Java_instagram_clone")) {
+        callStack.push(trace);
+      }
+    }
+    StringBuffer sb = new StringBuffer();
+    int order = 1;
+    while (!callStack.isEmpty()) {
+      sb.append("\n\t\t").append(order++).append(".").append(callStack.pop());
+    }
+    return new StringBuffer().append("\n\tCall Stack :").append(sb).append("\n")
+        .append("\n--------------------------------------").toString();
   }
 }

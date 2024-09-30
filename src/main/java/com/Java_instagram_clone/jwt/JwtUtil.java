@@ -35,11 +35,10 @@ public class JwtUtil {
     return createToken(username, ACCESS_TOKEN_EXPIRE_TIME);
   }
 
-  public String generateRefreshToken(String username) {
+  public void generateRefreshToken(String username) {
     String refreshToken = createToken(username, REFRESH_TOKEN_EXPIRE_TIME);
     redisTemplate.opsForValue()
         .set("RT:" + username, refreshToken, REFRESH_TOKEN_EXPIRE_TIME, TimeUnit.MILLISECONDS);
-    return refreshToken;
   }
 
   private String createToken(String username, long expireTime) {
@@ -100,6 +99,7 @@ public class JwtUtil {
 
   public void loginCreateToken(String username, HttpServletResponse response) {
     String accessToken = generateAccessToken(username);
+    generateRefreshToken(username);
 
     response.addHeader("Authorization", BEARER_TYPE + accessToken);
   }

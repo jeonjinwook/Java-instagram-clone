@@ -53,7 +53,7 @@ public class P6SpyFormatter implements MessageFormattingStrategy {
     StackTraceElement[] stackTrace = new Throwable().getStackTrace();
     for (StackTraceElement stackTraceElement : stackTrace) {
       String trace = stackTraceElement.toString();
-      if (trace.startsWith("com.Java_instagram_clone")) {
+      if (trace.startsWith("com.Java_instagram_clone.domain")) {
         callStack.push(trace);
       }
     }

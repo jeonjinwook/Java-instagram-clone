@@ -1,5 +1,6 @@
 package com.Java_instagram_clone.domain.feed.service;
 
+import com.Java_instagram_clone.cmn.EntityToDtoService;
 import com.Java_instagram_clone.domain.auth.entity.Response;
 import com.Java_instagram_clone.domain.auth.repository.AuthRepository;
 import com.Java_instagram_clone.domain.comment.entity.ResponseComment;
@@ -13,8 +14,8 @@ import com.Java_instagram_clone.file.FileService;
 import com.Java_instagram_clone.kafka.FeedProducer;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,22 +31,19 @@ public class FeedService {
   private final AuthRepository authRepository;
   private final FeedProducer feedProducer;
   private final FileService fileService;
+  private final EntityToDtoService entityToDtoService;
 
-  public static List<ResponseComment> commentsToResponseComments(Feed feed) {
+
+  public List<ResponseComment> commentsToResponseComments(Feed feed) {
 
     return feed.getComments().stream().map(comment -> {
 
-      ResponseComment responseComment = new ResponseComment();
-      responseComment.setId(comment.getId());
-      responseComment.setContents(comment.getContents());
+      ResponseComment responseComment = entityToDtoService.convertToDto(comment,
+          ResponseComment.class);
+      ResponseMember responseMember = entityToDtoService.convertToDto(comment.getUser(),
+          ResponseMember.class);
 
-      Member commentUser = comment.getUser();
-      ResponseMember responseMemberCommentUser = new ResponseMember();
-      responseMemberCommentUser.setId(commentUser.getId());
-      responseMemberCommentUser.setAccountName(commentUser.getAccountName());
-      responseMemberCommentUser.setName(commentUser.getName());
-
-      responseComment.setUser(responseMemberCommentUser);
+      responseComment.setUser(responseMember);
 
       return responseComment;
     }).toList();
@@ -62,13 +60,12 @@ public class FeedService {
 
       if (!createFiles.isEmpty()) {
 
-        String file = String.join(",", createFiles);
         Member member = authRepository.findById(feed.getUserNo());
 
         Feed saveFeed = Feed.builder()
             .user(member)
             .contents(feed.getContents())
-            .files(file)
+            .files(createFiles.toArray(new String[0]))
             .build();
 
         feedRepository.save(saveFeed);
@@ -94,20 +91,10 @@ public class FeedService {
 
     Feed feed = feedRepository.findById(id).orElse(null);
 
-    Member member = feed.getUser();
+    ResponseFeed responseFeed = entityToDtoService.convertToDto(feed, ResponseFeed.class);
+    ResponseMember responseMember = entityToDtoService.convertToDto(
+        Objects.requireNonNull(feed).getUser(), ResponseMember.class);
 
-    ResponseFeed responseFeed = new ResponseFeed();
-    String[] fileDir = Arrays.stream(feed.getFiles().split(","))
-        .map(s -> "uploadFile/" + s)
-        .toArray(String[]::new); // 다시 배열로 변환
-    responseFeed.setFiles(fileDir);
-    responseFeed.setId(feed.getId());
-    responseFeed.setContents(feed.getContents());
-    responseFeed.setLikes(feed.getLikes());
-
-    ResponseMember responseMember = new ResponseMember();
-    responseMember.setId(member.getId());
-    responseMember.setAccountName(member.getAccountName());
     responseFeed.setUser(responseMember);
 
     responseFeed.setComments(commentsToResponseComments(feed));
@@ -120,20 +107,11 @@ public class FeedService {
     ArrayList<Feed> feeds = feedRepository.findByUserId(requestFeed.getUserNo());
 
     List<ResponseFeed> responseFeeds = feeds.stream().map(feed -> {
-      Member member = feed.getUser();
-      String[] fileDir = Arrays.stream(feed.getFiles().split(","))
-          .map(s -> "uploadFile/" + s)
-          .toArray(String[]::new); // 다시 배열로 변환
-      ResponseFeed responseFeed = new ResponseFeed();
-      responseFeed.setFiles(fileDir);
-      responseFeed.setId(feed.getId());
-      responseFeed.setContents(feed.getContents());
-      responseFeed.setLikes(feed.getLikes());
 
-      ResponseMember responseMember = new ResponseMember();
-      responseMember.setId(member.getId());
-      responseMember.setAccountName(member.getAccountName());
-      responseMember.setName(member.getName());
+      ResponseFeed responseFeed = entityToDtoService.convertToDto(feed, ResponseFeed.class);
+      ResponseMember responseMember = entityToDtoService.convertToDto(
+          Objects.requireNonNull(feed).getUser(), ResponseMember.class);
+
       responseFeed.setUser(responseMember);
 
       responseFeed.setComments(commentsToResponseComments(feed));
@@ -144,7 +122,6 @@ public class FeedService {
     return responseDto.success(responseFeeds, "장상적으로 처리 했습니다.", HttpStatus.OK);
   }
 
-
   public ResponseEntity<?> update(RequestFeed feed) {
     return responseDto.success("", "장상적으로 처리 했습니다.", HttpStatus.OK);
   }
@@ -152,9 +129,8 @@ public class FeedService {
   public ResponseEntity<?> remove(long id) {
 
     Feed feed = feedRepository.findById(id).orElse(new Feed());
-    String[] files = feed.getFiles().split(",");
 
-    fileService.removeFiles(files);
+    fileService.removeFiles(feed.getFiles());
     feedRepository.deleteById(id);
 
     return responseDto.success("장상적으로 처리 했습니다.");

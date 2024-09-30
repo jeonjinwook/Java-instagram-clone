@@ -6,6 +6,7 @@ import com.Java_instagram_clone.domain.member.entity.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,17 +36,17 @@ public class Comment {
   @Column(name = "COMMENT_ID")
   private Integer id;
 
-  @ManyToOne(targetEntity = Member.class)
+  @ManyToOne(targetEntity = Member.class, fetch = FetchType.LAZY)
   @JoinColumn(name = "MEMBER_ID")
   @JsonIgnore
   private Member user;
 
-  @ManyToOne(targetEntity = Feed.class)
+  @ManyToOne(targetEntity = Feed.class, fetch = FetchType.LAZY)
   @JoinColumn(name = "FEED_ID")
   @JsonIgnore
   private Feed feed;
 
-  @OneToMany(targetEntity = Like.class, mappedBy = "comment")
+  @OneToMany(targetEntity = Like.class, mappedBy = "comment", fetch = FetchType.LAZY)
   @JsonIgnore
   private List<Like> likes = new ArrayList<>();
 

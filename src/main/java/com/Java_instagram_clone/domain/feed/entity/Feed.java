@@ -38,7 +38,7 @@ public class Feed {
   @Column(name = "FEED_ID")
   private Integer id;
 
-  @ManyToOne(targetEntity = Member.class)
+  @ManyToOne(targetEntity = Member.class, fetch = FetchType.LAZY)
   @JoinColumn(name = "MEMBER_ID")
   @JsonIgnore
   private Member user;

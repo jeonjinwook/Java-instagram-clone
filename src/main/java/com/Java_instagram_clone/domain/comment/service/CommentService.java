@@ -32,11 +32,8 @@ public class CommentService {
 
       Member user = feed.getUser();
 
-      Comment comment = Comment.builder()
-          .user(user)
-          .feed(feed)
-          .contents(requestComment.getContents())
-          .build();
+      Comment comment =
+          Comment.builder().user(user).feed(feed).contents(requestComment.getContents()).build();
 
       comment = commentRepository.save(comment);
 
@@ -48,5 +45,12 @@ public class CommentService {
     }
 
     return responseDto.fail("해당 피드를 찾기 못했습니다. ", HttpStatus.BAD_REQUEST);
+  }
+
+  public ResponseEntity<?> delete(RequestComment requestComment) {
+
+    feedRepository.deleteById(requestComment.getFeedId());
+
+    return responseDto.success("정상적으로 댓글이 삭제 되었습니다.");
   }
 }

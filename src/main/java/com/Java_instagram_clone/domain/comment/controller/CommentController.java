@@ -13,14 +13,17 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/comment")
 public class CommentController {
 
-    private final CommentService commentService;
+  private final CommentService commentService;
 
-    @PostMapping("create")
-    public ResponseEntity<?> create(@RequestBody RequestComment requestComment) {
+  @PostMapping("create")
+  public ResponseEntity<?> create(@RequestBody RequestComment requestComment) {
 
-        return commentService.create(requestComment);
+    return commentService.create(requestComment);
+  }
 
-    }
+  @PostMapping("delete")
+  public ResponseEntity<?> delete(@RequestBody RequestComment requestComment) {
 
-
+    return commentService.delete(requestComment);
+  }
 }

@@ -20,13 +20,24 @@ public class P6SpyFormatter implements MessageFormattingStrategy {
   }
 
   @Override
-  public String formatMessage(int connectionId, String now, long elapsed, String category,
-      String prepared, String sql, String url) {
+  public String formatMessage(
+      int connectionId,
+      String now,
+      long elapsed,
+      String category,
+      String prepared,
+      String sql,
+      String url) {
     String formattedSql = formatSql(category, sql);
     Date currentDate = new Date();
     SimpleDateFormat format1 = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
 
-    return format1.format(currentDate) + " | " + "OperationTime : " + elapsed + "ms" + formattedSql
+    return format1.format(currentDate)
+        + " | "
+        + "OperationTime : "
+        + elapsed
+        + "ms"
+        + formattedSql
         + createStack();
   }
 
@@ -42,8 +53,12 @@ public class P6SpyFormatter implements MessageFormattingStrategy {
     String trimmedSql = sql.trim();
     String lowerCaseSql = trimmedSql.toLowerCase(Locale.ROOT);
 
-    FormatStyle style = (lowerCaseSql.startsWith("create") || lowerCaseSql.startsWith("alter")
-        || lowerCaseSql.startsWith("comment")) ? FormatStyle.DDL : FormatStyle.BASIC;
+    FormatStyle style =
+        (lowerCaseSql.startsWith("create")
+                || lowerCaseSql.startsWith("alter")
+                || lowerCaseSql.startsWith("comment"))
+            ? FormatStyle.DDL
+            : FormatStyle.BASIC;
 
     return style.getFormatter().format(sql);
   }
@@ -62,7 +77,6 @@ public class P6SpyFormatter implements MessageFormattingStrategy {
     while (!callStack.isEmpty()) {
       sb.append("\n\t\t").append(order++).append(".").append(callStack.pop());
     }
-    return new StringBuffer().append("\n\tCall Stack :").append(sb).append("\n")
-        .append("\n--------------------------------------").toString();
+    return "\n\tCall Stack :" + sb + "\n" + "\n--------------------------------------";
   }
 }
